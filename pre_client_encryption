@@ -1,0 +1,17 @@
+GPG ENCRYPTION
+
+# Define a strong passphrase variable or store it securely in a restricted file
+GPG_PASSPHRASE="YourUltraSecurePasswordHere"
+
+# 1. COMPRESS AND ENCRYPT DOCUMENTS
+if [ -d "$DOCUMENTS_FOLDER" ]; then
+    echo "$(date '+%Y-%m-%d %H:%M:%S'): Encrypting and compressing Documents..." >> "$LOG_FILE"
+    
+    # Compress with tar and encrypt with gpg (AES-256)
+    tar -cz -C "$(dirname "$DOCUMENTS_FOLDER")" "$(basename "$DOCUMENTS_FOLDER")" | \
+    gpg --symmetric --batch --yes --cipher-algo AES256 --passphrase "$GPG_PASSPHRASE" \
+    -o "$TMP_DIR/documents_$DATE_DIR.tar.gz.gpg" 2>> "$LOG_FILE"
+
+    echo "$(date '+%Y-%m-%d %H:%M:%S'): Sending encrypted documents to Drive..." >> "$LOG_FILE"
+    $RCLONE_CMD move "$TMP_DIR/documents_$DATE_DIR.tar.gz.gpg" "$DRIVE_DESTINO/" >> "$LOG_FILE" 2>&1
+fi
